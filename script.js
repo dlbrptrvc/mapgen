@@ -71,26 +71,6 @@ genMapBtn.addEventListener('click',()=>{
     for(let i=1;i<player.length;i++) {
         player[0].border[i].away.add(player[i].capitol.toString())
         let newLand = player[i].capitol
-        if (isInside(mapTable.length,[newLand[0],newLand[1]-1])){
-            if (mapTable[newLand[0]][newLand[1]-1]===0) {
-                player[0].border[i].home.add([newLand[0],newLand[1]-1].toString())
-            }
-        }
-        if (isInside(mapTable.length,[newLand[0],newLand[1]+1])){
-            if (mapTable[newLand[0]][newLand[1]+1]===0) {
-                player[0].border[i].home.add([newLand[0],newLand[1]+1].toString())
-            } 
-        }
-        if (isInside(mapTable.length,[newLand[0]-1,newLand[1]])){
-            if (mapTable[newLand[0]-1][newLand[1]]===0) {
-                player[0].border[i].home.add([newLand[0]-1,newLand[1]].toString())
-            }
-        }
-        if (isInside(mapTable.length,[newLand[0]+1,newLand[1]])){
-            if (mapTable[newLand[0]+1][newLand[1]]===0) {
-                player[0].border[i].home.add([newLand[0]+1,newLand[1]].toString())
-            } 
-        }
     }
 
     // fill in the borders for players
@@ -100,22 +80,18 @@ genMapBtn.addEventListener('click',()=>{
         if (isInside(mapTable.length,[newLand[0],newLand[1]-1])){
             neighbor = mapTable[newLand[0]][newLand[1]-1]
             player[i].border[neighbor].away.add([newLand[0],newLand[1]-1].toString())
-            player[i].border[neighbor].home.add([newLand[0],newLand[1]].toString())
         }
         if (isInside(mapTable.length,[newLand[0],newLand[1]+1])){
             neighbor = mapTable[newLand[0]][newLand[1]+1]
             player[i].border[neighbor].away.add([newLand[0],newLand[1]+1].toString())
-            player[i].border[neighbor].home.add([newLand[0],newLand[1]].toString())
         }
         if (isInside(mapTable.length,[newLand[0]-1,newLand[1]])){
             neighbor = mapTable[newLand[0]-1][newLand[1]]
             player[i].border[neighbor].away.add([newLand[0]-1,newLand[1]].toString())
-            player[i].border[neighbor].home.add([newLand[0],newLand[1]].toString())
         }
         if (isInside(mapTable.length,[newLand[0]+1,newLand[1]])){
             neighbor = mapTable[newLand[0]+1][newLand[1]]
             player[i].border[neighbor].away.add([newLand[0]+1,newLand[1]].toString())
-            player[i].border[neighbor].home.add([newLand[0],newLand[1]].toString())
         }
     }
 
