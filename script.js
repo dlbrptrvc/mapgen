@@ -31,8 +31,6 @@ let mapTable = []
 let context = map.getContext('2d')
 let player = []
 let capitolList = []
-let removal = true
-let remain = false
 
 function neighborList(xy) {
     let list = []
