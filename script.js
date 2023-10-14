@@ -41,12 +41,51 @@ function neighborList(xy) {
     return list
 }
 
+function borders(a,b) {
+    if (player[a].border[b].away.size!==0||player[a].border[b].home.size!==0) {
+        return true
+    } else return false
+}
+
+function pixelByPixel() {
+    for(let i=1;i<=player[1].desiredSize;i++){
+        for(let j=1;j<player.length;j++){
+            if (player[j].size<player[j].desiredSize){
+                if (borders(j,0)) {
+                    takePixel(j,0)
+                } else {
+                    let path=findPath(0,j)
+                    for(let k=0;k<path.length-1;k++) {
+                        takePixel(path[k+1],path[k])
+                    }
+                }
+            }
+        }
+    }
+}
+
+function allAtOnce() {
+    for(let i=1;i<player.length;i++){
+        while (player[i].size<player[i].desiredSize) {
+            if (borders(i,0)) {
+                takePixel(i,0)
+            } else {
+                let path=findPath(0,i)
+                for(let k=0;k<path.length-1;k++) {
+                    takePixel(path[k+1],path[k])
+                }            
+            }
+        }
+    }
+}
+
 genMapBtn.addEventListener('click',()=>{
     // clear previous
     document.querySelectorAll('debug').forEach((element)=>{element.remove()})
     console.clear()
     mapTable = []
     player = []
+
     // gen an empty canvas
     map.style.border = "1px solid black"
     map.style.width = mapSize.value*16 + "px"
@@ -125,23 +164,8 @@ genMapBtn.addEventListener('click',()=>{
         }
     }
     // printStatus('TABLE after placement')
-    // attack player0 till desiredSize reached
-    for(let i=1;i<=player[1].desiredSize;i++){
-        for(let j=1;j<player.length;j++){
-            if (player[j].size<player[j].desiredSize){
-                if (player[j].border[0].away.size!==0||player[j].border[0].home.size!==0) {
-                    takePixel(j,0)
-                } else {
-                    let path=findPath(0,j)
-                    for(let k=0;k<path.length-1;k++) {
-                        takePixel(path[k+1],path[k])
-                    }
-                }
-            }
-        }
-    }
-
-
+    // load the desired algorithm and attack player0 till desiredSize reached
+    window[genAlgorithm.value]()
 })
 
 // simulate an attack from a chosen player that takes a pixel from a chosen enemy
@@ -186,7 +210,6 @@ function takePixel(w,l) {
                 normalizeBorder(i,w,l)
             }
             
-            // printAttackStatus(w,l,newLand)
             player[w].size++
             player[l].size--
             context.fillStyle = player[w].color
@@ -255,7 +278,7 @@ function findPath(a,b) {
         posiblePaths[current] = (posiblePaths[current]||[])
 // get all neighbors from current element of path
         for (let i=0;i<player.length;i++) {
-            if ((!(path.includes(i)))&&(player[i].border[path[current]].away.size!==0||player[i].border[path[current]].home.size!==0)){
+            if ((!(path.includes(i)))&&(borders(i,path[current]))){
                 neighbors.push(i)
             }
            }
@@ -277,6 +300,18 @@ function findPath(a,b) {
             current--
         }
     }
-    // printPathStatus(a,b,path)    
+// now that we have a path let's optimize it
+    if (path.length==3) {return path}
+    else {
+        for(let i=0;i<path.length-2;i++) {
+            for(let j=path.length-2;j>i+1;j--) {
+                if (borders(path[i],path[j])) {
+                    path.splice(i+1,j-i-1)
+                    j = path.length-1
+                }
+            }
+        }
+    }
+// and return it
     return path
 }

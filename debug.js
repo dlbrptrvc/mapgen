@@ -4,11 +4,13 @@ saveSetup.addEventListener('click',()=>{
     }
     localStorage.setItem('l',mapSize.value)
     localStorage.setItem('p',nOfAreas.value)
+    localStorage.setItem('a',genAlgorithm.value)
 })
 
 loadSetup.addEventListener('click',()=>{
     mapSize.value = localStorage.getItem('l')
     nOfAreas.value = localStorage.getItem('p')
+    genAlgorithm.value = localStorage.getItem('a')
     for (let i=1;i<=nOfAreas.value;i++) {
         capitolList.push(localStorage.getItem(i))
     }
