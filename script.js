@@ -135,6 +135,9 @@ genMapBtn.addEventListener('click',()=>{
         for(let j=0;j<player.length;j++) {
             player[i].border[j]={away:new Set(),home:new Set(),troops:0}    
         }
+        if (i!==0){
+            player[i].border[i].home.add(player[i].capitol.toString())
+        }
     }
 
     // fill in the borders for neutral
@@ -171,7 +174,7 @@ genMapBtn.addEventListener('click',()=>{
 // simulate an attack from a chosen player that takes a pixel from a chosen enemy
 function takePixel(w,l) {
 // check if there is a border at all
-    if (player[w].border[l].away.size==0 && player[w].border[l].home.size==0) {
+    if (!borders(w,l)) {
         return
     } else {
 // check if there's a pixel to select, if there is none generate new borders and try again
@@ -184,17 +187,22 @@ function takePixel(w,l) {
             let newLand = player[w].border[l].away.values().next().value
             let xy = [+newLand.split(',')[0],+newLand.split(',')[1]]
             let xyNeighbors = neighborList(xy)
+            let xynNeighbors = xyNeighbors.filter((item) => {
+                if (item[1]!==w && item[1]!==l) {return true}
+            })
             mapTable[xy[0]][xy[1]] = w
+            player[w].border[w].home.add(newLand)
+            player[l].border[l].home.delete(newLand)
 // for xy adjust n and l borders
-            for (let i of xyNeighbors) {
+            for (let i of xynNeighbors) {
                 player[i[1]].border[l].away.delete(newLand)
                 if (player[i[1]].border[l].away.size==0) {redrawBorder(i[1],l)}
                 player[l].border[i[1]].home.delete(newLand)
-//for xy adjust n and w borders
+// for xy adjust n and w borders
                 player[w].border[i[1]].home.add(newLand)
                 player[i[1]].border[w].away.add(newLand)
             }
-//for xy adjust l and w border
+// for xy adjust l and w border
             player[l].border[w].home.delete(newLand)
             player[w].border[l].away.delete(newLand)
             let check = false
@@ -206,7 +214,7 @@ function takePixel(w,l) {
                 player[l].border[w].away.add(newLand)
             }
 //now let's adjust the neighboring pixels
-            for(let i of xyNeighbors) {
+            for(let i of xynNeighbors) {
                 normalizeBorder(i,w,l)
             }
             
@@ -265,53 +273,57 @@ function redrawBorder(w,l) {
     player[l].border[w].home = newBorder
 }
 
-// searches for a path from one player to another
+// searches for the shortest path from one player to another
 function findPath(a,b) {
-    let path=[a]
-    let wrongPaths = []
-    let posiblePaths = []
-    let current = 0
-    let neighbors = []
-    while (path[current]!==b) {
-        neighbors = []
-        wrongPaths[current] = (wrongPaths[current]||[])
-        posiblePaths[current] = (posiblePaths[current]||[])
-// get all neighbors from current element of path
-        for (let i=0;i<player.length;i++) {
-            if ((!(path.includes(i)))&&(borders(i,path[current]))){
-                neighbors.push(i)
+    // console.log('looking for a path:',a,'to',b)
+// start with a single path starting with a
+    let thePath = []
+    let path = [a]
+    let node = 0
+    let minPathSize = player.length
+    let wrongTurns = [[]]
+    let possibleTurns = []
+    let selected = ''
+    while (path.length>0) {
+// generate possible turns and load wrong turns
+        // console.log('best path:',thePath)
+        // console.log('current path:',path)
+        // console.log('wrong turns:',wrongTurns[node])
+        wrongTurns[node] = wrongTurns[node]||[]
+        possibleTurns = []
+        for (let i=0;i<player.length;i++){
+            if (!wrongTurns[node].includes(i) && !path.includes(i) && borders(path[node],i)) {
+                possibleTurns.push(i)
             }
-           }
-// remove neighbors that are a wrong path for current
-        neighbors = neighbors.filter((element) => {
-            return !wrongPaths[current].includes(element)
-        })
-// if there's any left, lets take a path,
-        if (neighbors.length>0) {
-            posiblePaths[current]=neighbors
-            path.push(posiblePaths[current][0])
-            current++
-// else let's backtrack
+        }
+        // console.log('possible turns:',possibleTurns)
+// check if there is any, if yes take it, if not backtrack
+        if (possibleTurns.length>0) {
+            selected = possibleTurns.pop()
+            path.push(selected)
+            wrongTurns[node].push(selected)
+            node++
+            // console.log('node chosen:',selected)
         } else {
-            posiblePaths[current] = []
-            wrongPaths[current] = []
-            wrongPaths[+current-1].push(path[current])
+            wrongTurns[node]=[]
             path.pop()
-            current--
+            node--
+            // console.log('turning back')
         }
-    }
-// now that we have a path let's optimize it
-    if (path.length==3) {return path}
-    else {
-        for(let i=0;i<path.length-2;i++) {
-            for(let j=path.length-2;j>i+1;j--) {
-                if (borders(path[i],path[j])) {
-                    path.splice(i+1,j-i-1)
-                    j = path.length-1
-                }
+// check if the path is too long
+        if (path.length>minPathSize) {
+            wrongTurns[node]=[]
+            path.pop()
+            node--
+        } else {
+// check if we have a best path
+            if (path[path.length-1]==b) {
+                minPathSize = path.length
+                thePath=structuredClone(path)
+                // console.log('We found a new best path:',thePath)
             }
         }
     }
-// and return it
-    return path
+    // console.log('PATH RETURNED',thePath)
+    return thePath
 }
