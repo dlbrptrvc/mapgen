@@ -82,6 +82,7 @@ function allAtOnce() {
 
 genMapBtn.addEventListener('click',()=>{
     // clear previous
+    let start = Date.now()
     document.querySelectorAll('debug').forEach((element)=>{element.remove()})
     console.clear()
     mapTable = []
@@ -170,6 +171,8 @@ genMapBtn.addEventListener('click',()=>{
     // printStatus('TABLE after placement')
     // load the desired algorithm and attack player0 till desiredSize reached
     window[genAlgorithm.value]()
+    let timeTaken = Date.now()-start
+    console.log(timeTaken)
 })
 
 // simulate an attack from a chosen player that takes a pixel from a chosen enemy
@@ -276,20 +279,15 @@ function redrawBorder(w,l) {
 
 // searches for the shortest path from one player to another
 function findPath(a,b) {
-    // console.log('looking for a path:',a,'to',b)
-// start with a single path starting with a
     let thePath = []
     let path = [a]
     let node = 0
-    let minPathSize = player.length
+    let minPathSize = player.length+1
     let wrongTurns = [[]]
     let possibleTurns = []
     let selected = ''
     while (path.length>0) {
-// generate possible turns and load wrong turns
-        // console.log('best path:',thePath)
-        // console.log('current path:',path)
-        // console.log('wrong turns:',wrongTurns[node])
+// generate possible and wrong turns
         wrongTurns[node] = wrongTurns[node]||[]
         possibleTurns = []
         for (let i=0;i<player.length;i++){
@@ -297,34 +295,41 @@ function findPath(a,b) {
                 possibleTurns.push(i)
             }
         }
-        // console.log('possible turns:',possibleTurns)
-// check if there is any, if yes take it, if not backtrack
-        if (possibleTurns.length>0) {
-            selected = possibleTurns.pop()
-            path.push(selected)
-            wrongTurns[node].push(selected)
+// check if we can reach b
+        if (possibleTurns.includes(b)) {
+            path.push(b)
+            wrongTurns[node].splice(wrongTurns[node].length,0,...possibleTurns)
             node++
-            // console.log('node chosen:',selected)
         } else {
-            wrongTurns[node]=[]
-            path.pop()
-            node--
-            // console.log('turning back')
+// check if there is a path, if yes take it, if not backtrack
+            if (possibleTurns.length>0) {
+                selected = possibleTurns.pop()
+                path.push(selected)
+                wrongTurns[node].push(selected)
+                node++
+            } else {
+                wrongTurns[node]=[]
+                path.pop()
+                node--
+            }
         }
 // check if the path is too long
-        if (path.length>minPathSize) {
+        if (path.length>=minPathSize) {
             wrongTurns[node]=[]
             path.pop()
             node--
         } else {
 // check if we have a best path
             if (path[path.length-1]==b) {
-                minPathSize = path.length
-                thePath=structuredClone(path)
-                // console.log('We found a new best path:',thePath)
+                if (path.length==3) {
+                    return path
+                }
+                else {
+                    minPathSize = path.length
+                    thePath=structuredClone(path)
+                }
             }
         }
     }
-    // console.log('PATH RETURNED',thePath)
     return thePath
 }
