@@ -31,6 +31,7 @@ let mapTable = []
 let context = map.getContext('2d')
 let player = []
 let capitolList = []
+let zoomQ = 2
 
 function neighborList(xy) {
     let list = []
@@ -88,8 +89,8 @@ genMapBtn.addEventListener('click',()=>{
 
     // gen an empty canvas
     map.style.border = "1px solid black"
-    map.style.width = mapSize.value*16 + "px"
-    map.style.height = mapSize.value*16 + "px"
+    map.style.width = mapSize.value*zoomQ + "px"
+    map.style.height = mapSize.value*zoomQ + "px"
     map.width = mapSize.value
     map.height = mapSize.value
 
